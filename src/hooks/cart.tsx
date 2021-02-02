@@ -30,23 +30,62 @@ const CartProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function loadProducts(): Promise<void> {
-      // TODO LOAD ITEMS FROM ASYNC STORAGE
+      const loadedProducts = await AsyncStorage.getItem('@GoMarket:products');
+      if (loadedProducts) {
+        setProducts(JSON.parse(loadedProducts));
+      }
     }
-
     loadProducts();
   }, []);
 
-  const addToCart = useCallback(async product => {
-    // TODO ADD A NEW ITEM TO THE CART
-  }, []);
+  const addToCart = useCallback(
+    async product => {
+      setProducts([...products, { ...product, quantity: 1 }]);
+      await AsyncStorage.setItem(
+        '@GoMarket:products',
+        JSON.stringify(products),
+      );
+    },
+    [products],
+  );
 
-  const increment = useCallback(async id => {
-    // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+  const increment = useCallback(
+    async id => {
+      const foundProduct = products.map(product => {
+        if (product.id === id) {
+          const productUpdated = product;
+          productUpdated.quantity += 1;
+          return productUpdated;
+        }
+        return product;
+      });
+      await AsyncStorage.setItem(
+        '@GoMarket:products',
+        JSON.stringify(foundProduct),
+      );
+      setProducts(foundProduct);
+    },
+    [products],
+  );
 
-  const decrement = useCallback(async id => {
-    // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+  const decrement = useCallback(
+    async id => {
+      const foundProduct = products.map(product => {
+        if (product.id === id) {
+          const productUpdated = product;
+          productUpdated.quantity -= 1;
+          return productUpdated;
+        }
+        return product;
+      });
+      await AsyncStorage.setItem(
+        '@GoMarket:products',
+        JSON.stringify(foundProduct),
+      );
+      setProducts(foundProduct);
+    },
+    [products],
+  );
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
