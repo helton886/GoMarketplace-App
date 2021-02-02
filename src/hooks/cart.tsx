@@ -40,7 +40,16 @@ const CartProvider: React.FC = ({ children }) => {
 
   const addToCart = useCallback(
     async product => {
-      setProducts([...products, { ...product, quantity: 1 }]);
+      const foundProduct = products.find(prod => prod.id === product.id);
+
+      if (foundProduct) {
+        const otherProducts = products.filter(prod => prod.id !== product.id);
+        foundProduct.quantity += 1;
+        setProducts([...otherProducts, foundProduct]);
+      } else {
+        setProducts([...products, { ...product, quantity: 1 }]);
+      }
+
       await AsyncStorage.setItem(
         '@GoMarket:products',
         JSON.stringify(products),
@@ -78,11 +87,14 @@ const CartProvider: React.FC = ({ children }) => {
         }
         return product;
       });
+      const removeNegativeQuantity = foundProduct.filter(
+        prod => prod.quantity > 0,
+      );
       await AsyncStorage.setItem(
         '@GoMarket:products',
-        JSON.stringify(foundProduct),
+        JSON.stringify(removeNegativeQuantity),
       );
-      setProducts(foundProduct);
+      setProducts(removeNegativeQuantity);
     },
     [products],
   );
